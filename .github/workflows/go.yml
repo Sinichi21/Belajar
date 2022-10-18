@@ -34,4 +34,4 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
-        tags: sinichi21/belajar-cicd-01:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/belajar-cicd-01:latest
