@@ -1,13 +1,31 @@
-FROM golang:1.17-alpine
+FROM golang:1.17-alpine as build
+
+ARG USERNAME_GITHUB
+ARG TOKEN_GITHUB
+
+RUN apk update
+RUN apk add git 
 
 WORKDIR /app
 
-COPY go.mod ./
-COPY *.go ./
-COPY static ./static
+COPY go.mod /app/
+COPY go.sum /app/
 
-RUN go build -o /belajar-cicd-pemula
+RUN git config --global url."https://${USERNAME_GITHUB}:${TOKEN_GITHUB}@github.com" instedadof "https://github.com"
 
-EXPOSE 3000
+RUN go mod download
+RUN go mod tidy
 
-CMD ["/belajar-cicd-pemula"]
+COPY . /app/
+RUN go build -o /app/main
+
+#------------------------------
+FROM alpine:3.16.0
+WORKDIR /app
+
+#web service
+EXPOSE 8080
+COPY --from=build /app/conf/.env.example /app/conf/.env
+COPY --from=build /app/main /app/main
+
+CMD ["./main"]
